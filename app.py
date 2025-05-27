@@ -138,11 +138,9 @@ def process_command(cmd):
         game["log"].append("❓ Unknown command")
 
 # 명령어 입력창
-cmd = st.text_input("Enter Command (NAV dx dy, PHA, TOR x y, SRS)", key="cmd_input")
+cmd = st.text_input("Enter Command (NAV dx dy, PHA, TOR x y, SRS)")
 if cmd:
     process_command(cmd)
-    # 입력 초기화 (한 번 처리 후 입력창 클리어)
-    st.session_state.cmd_input = ""
 
 # 상태 정보 출력
 st.markdown(f"**Stardate**: {game['stardate']}   |  **Energy**: {game['energy']}   |  **Torpedoes**: {game['torpedoes']}")
