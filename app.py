@@ -4,6 +4,26 @@ import random
 st.set_page_config(page_title="Star Trek (1971 Remake)", layout="wide")
 st.title("🖖 Star Trek (1971) - Streamlit Edition")
 
+st.markdown("""
+### 📘 How to Play
+
+Welcome, Captain! Your mission is to destroy all Klingon ships before stardate 2265.
+
+**Command Reference:**
+- `NAV dx dy` — Navigate by relative direction. Example: `NAV 1 -1` moves diagonally.
+- `SRS` — Short Range Scan of current 8x8 sector.
+- `PHA` — Fire phasers (hits Klingons adjacent to Enterprise).
+- `TOR x y` — Launch photon torpedo at absolute sector position (e.g., `TOR 2 3`).
+
+**Legend:**
+- `E`: Your ship (the Enterprise)
+- `K`: Klingon ship
+- `B`: Starbase
+- ` `: Empty space
+
+Use your energy and torpedoes wisely!
+""")
+
 # 초기 상태 설정
 if "game" not in st.session_state:
     st.session_state.game = {
@@ -63,7 +83,7 @@ def process_command(cmd):
     elif cmd.startswith("PHA"):
         sx, sy = game["ship_pos"]
         hit = False
-        for k in game["klingons"]:
+        for k in game["klingons"][:]:
             kx, ky = k
             if abs(kx - sx) <= 1 and abs(ky - sy) <= 1:
                 game["log"].append(f"🔫 Hit Klingon at ({kx},{ky})")
@@ -71,7 +91,6 @@ def process_command(cmd):
                 game["klingons"].remove(k)
                 game["energy"] -= 200
                 hit = True
-                break
         if not hit:
             game["log"].append("💨 No Klingon in range!")
     elif cmd.startswith("TOR"):
