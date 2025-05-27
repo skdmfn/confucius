@@ -77,9 +77,15 @@ def process_command(cmd):
                 game["log"].append("❌ Navigation out of bounds.")
         except:
             game["log"].append("❌ Invalid NAV command format. Use: NAV dx dy")
-    elif cmd.startswith("SRS"):
-        srs = "\n".join([" ".join(row) for row in game["sector"]])
-        game["log"].append(f"📡 Short Range Scan:\n{srs}")
+  elif cmd.startswith("SRS"):
+    grid_lines = []
+    border = "+---" * 8 + "+"
+    for row in game["sector"]:
+        row_line = "| " + " | ".join(c if c != " " else "." for c in row) + " |"
+        grid_lines.append(border)
+        grid_lines.append(row_line)
+    grid_lines.append(border)
+    game["log"].append("📡 Short Range Scan:\n" + "\n".join(grid_lines))
     elif cmd.startswith("PHA"):
         sx, sy = game["ship_pos"]
         hit = False
