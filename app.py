@@ -84,21 +84,18 @@ def dock():
 def move_klingons():
     new_positions = []
     for kx, ky in game["klingons"]:
-        # Random move -1,0,1 in x and y, stay in bounds, no collision with Enterprise
         game["sector"][kx][ky] = "."
         dx, dy = random.choice([-1, 0, 1]), random.choice([-1, 0, 1])
         nx, ny = kx + dx, ky + dy
         if 0 <= nx < 8 and 0 <= ny < 8:
-            if game["sector"][nx][ny] in [".", "B"]:  # Can move on empty or starbase
+            if game["sector"][nx][ny] in [".", "B"]:
                 new_positions.append([nx, ny])
             else:
-                new_positions.append([kx, ky])  # stay if blocked
+                new_positions.append([kx, ky])
         else:
-            new_positions.append([kx, ky])  # stay if out of bounds
+            new_positions.append([kx, ky])
     game["klingons"] = new_positions
-    # Place klingons in sector map
     for (kx, ky) in game["klingons"]:
-        # If collides with Enterprise, game over
         if [kx, ky] == game["ship_pos"]:
             game["log"].append("💥 A Klingon ship rammed the Enterprise! Game Over.")
             game["game_over"] = True
@@ -132,17 +129,14 @@ def process_command(cmd):
                 game["log"].append("💥 You crashed into a Klingon ship! Game Over.")
                 game["game_over"] = True
                 return
-            # Move Enterprise
             game["sector"][sx][sy] = "."
             game["sector"][nx][ny] = "E"
             game["ship_pos"] = [nx, ny]
             game["energy"] -= 100
-            # Klingons move after you
             move_klingons()
         except ValueError:
             game["log"].append("❌ NAV command dx and dy must be integers.")
     elif cmd == "SRS":
-        # Show current sector
         scan_lines = []
         scan_lines.append("+---"*8 + "+")
         for row in game["sector"]:
@@ -151,7 +145,6 @@ def process_command(cmd):
             scan_lines.append("+---"*8 + "+")
         game["log"].append("📡 Short Range Scan:\n" + "\n".join(scan_lines))
     elif cmd == "LRS":
-        # Long Range Scan: show klingon counts in nearby quadrants as a grid
         lrs_lines = []
         lrs_lines.append("🛰️ Long Range Scan (Klingons per quadrant)")
         lrs_lines.append("+----"*8 + "+")
@@ -161,7 +154,6 @@ def process_command(cmd):
             lrs_lines.append("+----"*8 + "+")
         game["log"].append("\n".join(lrs_lines))
     elif cmd == "PHA":
-        # Phaser attack adjacent klingons
         sx, sy = game["ship_pos"]
         hit_any = False
         for k in game["klingons"][:]:
@@ -175,7 +167,6 @@ def process_command(cmd):
         if not hit_any:
             game["log"].append("💨 No Klingon in range!")
         else:
-            # Klingons move after phaser fire
             move_klingons()
     elif cmd.startswith("TOR"):
         if game["torpedoes"] <= 0:
@@ -193,4 +184,63 @@ def process_command(cmd):
             if [tx, ty] in game["klingons"]:
                 game["klingons"].remove([tx, ty])
                 game["sector"][tx][ty] = "."
-                game["log"].append(f"💥 Klingon destroyed at ({
+                game["log"].append(f"💥 Klingon destroyed at ({tx},{ty})")
+            else:
+                game["log"].append("🎯 Torpedo missed!")
+            game["torpedoes"] -= 1
+            move_klingons()
+        except ValueError:
+            game["log"].append("❌ TOR command x and y must be integers.")
+    elif cmd == "DOCK":
+        dock()
+    elif cmd == "COMP":
+        status = (
+            f"🖥️ Computer Status:\n"
+            f"Energy: {game['energy']}\n"
+            f"Torpedoes: {game['torpedoes']}\n"
+            f"Klingons remaining: {len(game['klingons'])}\n"
+            f"Stardate: {game['stardate']} / {game['deadline']}\n"
+        )
+        game["log"].append(status)
+    else:
+        game["log"].append("❌ Unknown command.")
+
+    # Check win/loss
+    if len(game["klingons"]) == 0:
+        game["log"].append("🏆 All Klingons destroyed! You win!")
+        game["win"] = True
+    if game["energy"] <= 0:
+        game["log"].append("🔋 Energy depleted! Game Over.")
+        game["game_over"] = True
+    if game["stardate"] >= game["deadline"]:
+        game["log"].append("⏳ Stardate deadline passed! Game Over.")
+        game["game_over"] = True
+
+    # Increment stardate on each turn
+    game["stardate"] += 1
+
+# === UI ===
+
+cmd_input = st.text_input("Enter command:", key="cmd_input")
+
+if st.button("Execute") or cmd_input.endswith("\n"):
+    if cmd_input.strip():
+        process_command(cmd_input)
+        st.session_state.cmd_input = ""
+
+# 로그 출력
+st.markdown("### Mission Log")
+for line in game["log"][-20:]:  # 최근 20줄 출력
+    st.text(line)
+
+# 상태 요약
+st.markdown("### Status")
+st.write(f"Energy: {game['energy']}")
+st.write(f"Torpedoes: {game['torpedoes']}")
+st.write(f"Klingons remaining: {len(game['klingons'])}")
+st.write(f"Stardate: {game['stardate']} / {game['deadline']}")
+
+if game["game_over"]:
+    st.error("💀 Game Over! Please refresh to restart.")
+if game["win"]:
+    st.success("🎉 Congratulations! You won the game! Refresh to play again.")
