@@ -1,47 +1,50 @@
 import streamlit as st
-import time
 import random
 
-st.set_page_config(page_title="Dino Run!", layout="centered")
-st.title("🦖 Dino Run")
+st.set_page_config(page_title="Dino Run", layout="centered")
+st.title("🦖 Dino Run - Text Edition")
 
-# 게임 초기화
+# 상태 초기화
 if "score" not in st.session_state:
     st.session_state.score = 0
-    st.session_state.game_over = False
     st.session_state.jump = False
+    st.session_state.game_over = False
     st.session_state.obstacle = False
+    st.session_state.tick = 0
 
-# 점프 버튼
-jump_pressed = st.button("⬆️ Jump")
+# 게임 오버 처리
+if st.session_state.game_over:
+    st.error("💥 Game Over!")
+    st.write(f"Your final score: {st.session_state.score}")
+    if st.button("🔄 Restart"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+    st.stop()
 
-# 점프 처리
-if jump_pressed and not st.session_state.jump:
+# UI: 점프 버튼
+if st.button("⬆️ Jump"):
     st.session_state.jump = True
-    jump_time = time.time()
 
-# 장애물 생성
-if random.randint(1, 10) > 7:
-    st.session_state.obstacle = True
-else:
-    st.session_state.obstacle = False
+# 새로운 장애물 생성 (일정 간격)
+if st.session_state.tick % 3 == 0:
+    st.session_state.obstacle = random.choice([True, False])
 
 # 충돌 검사
 if st.session_state.obstacle and not st.session_state.jump:
     st.session_state.game_over = True
 
-# 게임 화면 출력
-if st.session_state.game_over:
-    st.error("💥 Game Over!")
-    st.write(f"Your score: {st.session_state.score}")
-    if st.button("🔄 Restart"):
-        st.session_state.score = 0
-        st.session_state.game_over = False
-        st.session_state.jump = False
+# 화면 그리기
+dino = "🦖⬆️" if st.session_state.jump else "🦖"
+cactus = "🌵" if st.session_state.obstacle else "⠀"
+st.write(f"{dino} {' ' * 10} {cactus}")
+
+# 점수 및 상태 업데이트
+st.session_state.score += 1
+st.session_state.jump = False
+st.session_state.tick += 1
+
+# 다음 프레임 진행 버튼
+if st.button("▶️ Next Step"):
+    pass  # 아무것도 안 해도 버튼 클릭 시 UI 갱신
 else:
-    dino = "🦖" if not st.session_state.jump else "🦖⬆️"
-    obs = "🌵" if st.session_state.obstacle else "⠀"
-    st.write(f"{dino} {' ' * 10} {obs}")
-    st.session_state.score += 1
-    time.sleep(0.5)
-    st.experimental_rerun()
+    st.info("⬆️ Jump를 누르고 ▶️ Next Step을 눌러보세요!")
