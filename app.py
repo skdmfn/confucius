@@ -134,7 +134,7 @@ def dock():
 
 def process_command(cmd):
     parts = cmd.strip().upper().split()
-    if len(parts) == 0:
+    if len(parts) == 0 or parts[0] == "":
         log("❌ No command entered.")
         return
     command = parts[0]
@@ -166,25 +166,26 @@ def process_command(cmd):
     except ValueError:
         log("❌ Invalid numeric value in command.")
 
+# 세션 상태 초기화: game, cmd_input 없으면 초기화
 if "game" not in st.session_state:
     st.session_state.game = init_game()
 
-game = st.session_state.game
-
 if "cmd_input" not in st.session_state:
     st.session_state.cmd_input = ""
+
+game = st.session_state.game
 
 st.title("🚀 Star Trek Command Console")
 
 st.text_area("Game Log", value="\n".join(game["log"]), height=300, key="game_log", disabled=True)
 
-cmd_input = st.text_input("Enter command:", value=st.session_state.cmd_input, key="cmd_input")
+# cmd_input을 key만 지정해서 상태와 연결 (value는 지정하지 말 것)
+cmd_input = st.text_input("Enter command:", key="cmd_input")
 
 if st.button("Execute"):
     process_command(cmd_input)
-    # 여기서 세션 상태 직접 덮어쓰기 하지 말고 위젯 value 파라미터로 관리
+    # 버튼 눌렀을 때만 cmd_input 비우기
     st.session_state.cmd_input = ""
 
 st.text("Current Sector:")
 st.text(render_grid())
-
