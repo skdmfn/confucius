@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import random
 from streamlit_autorefresh import st_autorefresh
+pip install streamlit-autorefresh
 
 # 페이지 설정
 st.set_page_config(page_title="Dino Run 🦖", layout="wide")
