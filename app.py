@@ -238,4 +238,37 @@ def process_command(cmd):
         log("❌ Unknown command.")
 
     # 게임 종료 조건 체크
-    if not game
+    if game["energy"] <= 0:
+        log("⚠️ Energy depleted. You lost!")
+        game["game_over"] = True
+    if len(game["klingons"]) == 0:
+        log("🎉 All Klingons destroyed. You won!")
+        game["game_over"] = True
+    if game["stardate"] > game["deadline"]:
+        log("⌛ Stardate expired. You lost!")
+        game["game_over"] = True
+
+    game["stardate"] += 1
+
+
+# UI 입력
+cmd_input = st.text_input("Enter command:", key="cmd_input")
+
+if st.button("Execute") or cmd_input:
+    process_command(cmd_input)
+    # 입력창 초기화
+    st.session_state.cmd_input = ""
+
+# 게임 로그 출력
+st.text_area("Log", value="\n".join(game["log"]), height=400)
+
+# 상태 요약
+st.markdown(f"""
+**Energy:** {game['energy']}  
+**Torpedoes:** {game['torpedoes']}  
+**Stardate:** {game['stardate']} / {game['deadline']}  
+**Klingons Remaining:** {len(game['klingons'])}
+""")
+
+if game["game_over"]:
+    st.markdown("## 🚀 Game Over! Refresh the page to start a new game.")
